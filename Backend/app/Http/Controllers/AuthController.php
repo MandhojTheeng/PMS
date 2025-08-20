@@ -86,15 +86,20 @@ class AuthController extends Controller
         ]);
     }
 
-    // Get all users (role-aware)
-    public function allUsers()
+    // Get all users (role-aware, optional role filter)
+    public function allUsers(Request $request)
     {
-        $authUser = auth()->user();
+        $authUser = $request->user();
+        $roleQuery = $request->query('role', null);
 
         if ($authUser->hasRole('Super Admin')) {
-            $users = User::all();
+            $users = $roleQuery
+                ? User::role(ucwords(strtolower($roleQuery)))->get()
+                : User::all();
         } elseif ($authUser->hasRole('Admin')) {
-            $users = User::role('User')->get();
+            $users = $roleQuery
+                ? User::role(ucwords(strtolower($roleQuery)))->where('id', '!=', $authUser->id)->get()
+                : User::role('User')->get();
         } else {
             $users = User::where('id', $authUser->id)->get();
         }
@@ -114,22 +119,28 @@ class AuthController extends Controller
     // Delete users (role-aware)
     public function deleteAllUsers(Request $request)
     {
-        $roleToDelete = $request->query('role', 'all');
+        $roleToDelete = $request->query('role', null);
 
-        if ($roleToDelete === 'User') {
-            User::role('User')->delete();
-            $message = "All Users have been deleted.";
-        } elseif ($roleToDelete === 'Admin') {
-            User::role('Admin')->delete();
-            $message = "All Admins have been deleted.";
-        } else {
-            $superAdmins = User::role('Super Admin')->pluck('id');
-            User::whereNotIn('id', $superAdmins)->delete();
-            $message = "All non-Super Admin users have been deleted.";
+        if (!$roleToDelete) {
+            return response()->json(['message' => 'Role query parameter is required'], 400);
         }
 
-        return response()->json([
-            'message' => $message
-        ]);
+        $roleToDelete = ucwords(strtolower($roleToDelete));
+
+        if ($roleToDelete === 'Super Admin') {
+            return response()->json(['message' => 'Cannot delete Super Admin users'], 403);
+        }
+
+        $users = User::role($roleToDelete)->get();
+
+        if ($users->isEmpty()) {
+            return response()->json(['message' => "No users found with role $roleToDelete"], 404);
+        }
+
+        foreach ($users as $user) {
+            $user->delete();
+        }
+
+        return response()->json(['message' => "All $roleToDelete users have been deleted"]);
     }
 }

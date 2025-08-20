@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
@@ -7,7 +8,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/user', [AuthController::class, 'me']); // current user
-    Route::get('/users', [AuthController::class, 'allUsers']); // role-aware users
+    Route::get('/users', [AuthController::class, 'allUsers']); // role-aware users with optional role filter
     Route::post('/logout', [AuthController::class, 'logout']);
 
     Route::middleware(['role:Super Admin'])->get('/super-admin', function () {
@@ -23,6 +24,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
-// Delete users - Super Admin only (outside nested group to avoid issues)
+// Delete users - Super Admin only, requires role query
 Route::middleware(['auth:sanctum', 'role:Super Admin'])
     ->delete('/users', [AuthController::class, 'deleteAllUsers']);

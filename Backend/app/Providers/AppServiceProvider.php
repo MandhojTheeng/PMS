@@ -16,12 +16,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // Clear cached roles/permissions (important in dev)
+        // Clear cached roles/permissions during development
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
-        // API Rate Limiting
+        // Configure API rate limiting
         RateLimiter::for('api', function ($request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+            $limit = env('API_RATE_LIMIT', 60);
+            return Limit::perMinute($limit)->by($request->user()?->id ?: $request->ip());
         });
     }
 }

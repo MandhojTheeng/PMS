@@ -11,8 +11,8 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasRoles, Notifiable;
 
-    // Disable timestamps
-    public $timestamps = false;
+    // Define valid roles
+    public const VALID_ROLES = ['Super Admin', 'Admin', 'User'];
 
     protected $fillable = [
         'name',
