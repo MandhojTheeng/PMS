@@ -58,7 +58,8 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                // Disable SSL if DB_SSL_MODE is set to DISABLED
+                PDO::MYSQL_ATTR_SSL_CA => env('DB_SSL_MODE') === 'DISABLED' ? null : env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -78,7 +79,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+                PDO::MYSQL_ATTR_SSL_CA => env('DB_SSL_MODE') === 'DISABLED' ? null : env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 

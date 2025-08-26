@@ -1,46 +1,47 @@
-# Docker Compose for Laravel + MySQL + PHPMyAdmin
-version: '3.8'
-
 services:
-
-  # MySQL Database
-  mysql:
-    image: mysql:8.1
-    container_name: laravel_mysql
-    restart: always
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
     ports:
-      - "3306:3306"
+      - "8000:8000"
+    depends_on:
+      - mysql
+    entrypoint: ["docker-entrypoint.sh"]
+
+  mysql:
+    image: mysql:8.0
+    container_name: laravel_mysql
+    restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root123
-      MYSQL_DATABASE: backend
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root123
+      MYSQL_DATABASE: parking_management
+      MYSQL_USER: parking_user
+      MYSQL_PASSWORD: parking_pass
+    ports:
+      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  # PHPMyAdmin for database management
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: laravel_phpmyadmin
-    restart: always
-    ports:
-      - "8080:80"
+    restart: unless-stopped
     environment:
       PMA_HOST: mysql
       MYSQL_ROOT_PASSWORD: root123
-    depends_on:
-      - mysql
-
-  # Laravel application
-  laravel:
-    image: php:8.2-cli
-    container_name: laravel_app
-    working_dir: /var/www/html
-    volumes:
-      - ./:/var/www/html
     ports:
-      - "8000:8000"
-    command: php artisan serve --host=0.0.0.0 --port=8000
+      - "8080:80"
     depends_on:
       - mysql
 

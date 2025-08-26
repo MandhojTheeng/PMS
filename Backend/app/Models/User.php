@@ -11,8 +11,6 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasRoles, Notifiable;
 
-    // Define valid roles
-    public const VALID_ROLES = ['Super Admin', 'Admin', 'User'];
 
     protected $fillable = [
         'name',

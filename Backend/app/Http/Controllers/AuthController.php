@@ -73,11 +73,10 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out']);
     }
 
-    // Get authenticated user
+    // Authenticated user info
     public function me(Request $request)
     {
         $user = $request->user();
-
         return response()->json([
             'id'    => $user->id,
             'name'  => $user->name,
@@ -86,7 +85,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // Get all users (role-aware, optional role filter)
+    // Get users based on role
     public function allUsers(Request $request)
     {
         $authUser = $request->user();
@@ -98,16 +97,16 @@ class AuthController extends Controller
                 : User::all();
         } elseif ($authUser->hasRole('Admin')) {
             $users = $roleQuery
-                ? User::role(ucwords(strtolower($roleQuery)))->where('id', '!=', $authUser->id)->get()
+                ? User::role('User')->get() // Admin can only see Users
                 : User::role('User')->get();
         } else {
-            $users = User::where('id', $authUser->id)->get();
+            $users = User::where('id', $authUser->id)->get(); // Users see only themselves
         }
 
         $users = $users->map(function ($user) {
             return [
-                'id'    => $user->id,
-                'name'  => $user->name,
+                'id' => $user->id,
+                'name' => $user->name,
                 'email' => $user->email,
                 'roles' => $user->getRoleNames(),
             ];
@@ -116,7 +115,7 @@ class AuthController extends Controller
         return response()->json($users);
     }
 
-    // Delete users (role-aware)
+    // Delete users (Super Admin only)
     public function deleteAllUsers(Request $request)
     {
         $roleToDelete = $request->query('role', null);

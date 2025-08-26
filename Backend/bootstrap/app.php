@@ -12,23 +12,21 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
-    ->withMiddleware(function (Middleware $middleware): void
-    {
+    ->withMiddleware(function (Middleware $middleware): void {
         // Default API middleware
         $middleware->group('api', [
             'throttle:api',
             SubstituteBindings::class,
         ]);
 
-        // Spatie Permission middleware aliases
+        // Spatie Permission middleware aliases (fixed namespace)
         $middleware->alias([
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
-    ->withExceptions(function (Exceptions $exceptions): void
-    {
+    ->withExceptions(function (Exceptions $exceptions): void {
         //
     })
     ->create();
